@@ -1,0 +1,14 @@
+# /www/wwwroot/<seu-site>/html/.htaccess
+DirectoryIndex index.php
+Options -MultiViews
+
+RewriteEngine On
+RewriteBase /
+
+# Se o arquivo ou diretório existir, serve direto
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Caso contrário, envia tudo para index.php
+RewriteRule ^ index.php [QSA,L]
