@@ -1,14 +1,45 @@
-# /www/wwwroot/<seu-site>/html/.htaccess
+# /www/wwwroot/ob/.htaccess
 DirectoryIndex index.php
-Options -MultiViews
+Options -MultiViews -Indexes
 
 RewriteEngine On
 RewriteBase /
 
-# Se o arquivo ou diretório existir, serve direto
+# --- roteia o datafeed UDF para o proxy PHP (-> Node 3001) ---
+RewriteCond %{REQUEST_URI} ^/tv/datafeeds/udf/ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^tv/datafeeds/udf/ /tv/datafeeds/udf/index.php [QSA,L]
+
+# 1) Não reescrever nada dentro de /tv (lib do gráfico)
+# --- ROTA DO DATAFEED UDF (PHP) ---
+RewriteCond %{REQUEST_URI} ^/tv/datafeeds/udf/ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^tv/datafeeds/udf/ /tv/datafeeds/udf/index.php [QSA,L]
+
+
+# 2) Não reescrever arquivos estáticos (inclui wasm/json/map)
+RewriteCond %{REQUEST_URI} \.(woff2?|ttf|otf|eot|svg|js|css|png|jpe?g|gif|webp|ico|json|map|wasm)$ [NC]
+RewriteRule ^ - [L]
+
+# 3) Se for arquivo/pasta real, entrega direto
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Caso contrário, envia tudo para index.php
+# 4) CATCH-ALL: qualquer outra rota (ex.: /traderoom) vai para index.php
 RewriteRule ^ index.php [QSA,L]
+
+# 5) Tipos corretos (fonte/wasm/etc)
+<IfModule mod_mime.c>
+  AddType application/font-woff2 .woff2
+  AddType application/font-woff  .woff
+  AddType application/vnd.ms-fontobject .eot
+  AddType font/ttf .ttf
+  AddType font/otf .otf
+  AddType image/svg+xml .svg
+  AddType application/wasm .wasm
+  AddType application/json .json
+  AddType application/octet-stream .map
+</IfModule>

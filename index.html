@@ -1,363 +1,249 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <!--
-    Modified from the Debian original for Ubuntu
-    Last updated: 2022-03-22
-    See: https://launchpad.net/bugs/1966004
-  -->
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Apache2 Ubuntu Default Page: It works</title>
-    <style type="text/css" media="screen">
-  * {
-    margin: 0px 0px 0px 0px;
-    padding: 0px 0px 0px 0px;
-  }
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gráfico (amCharts 5) — Velas com backend PHP</title>
 
-  body, html {
-    padding: 3px 3px 3px 3px;
+  <!-- amCharts 5 (CDN) -->
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 
-    background-color: #D8DBE2;
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0f1217; /* dark */
+      color: #eaeef5;
+      font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    header {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1b212c;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 600;
+    }
+    .toolbar {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .toolbar label { opacity: .8; }
+    main { height: calc(100% - 52px); }
+    #chartdiv { width: 100%; height: 100%; }
+    .badge {
+      background:#1b212c;border-radius:6px;padding:4px 8px;font-size:12px;opacity:.9
+    }
+    select, button {
+      background: #151a23; color:#eaeef5; border:1px solid #2a3444; border-radius:8px;
+      padding:6px 10px;
+    }
+    button { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>amCharts 5 — Candlestick</h1>
+    <span class="badge">Fonte: <code>data.php</code> (simulador)</span>
+    <div class="toolbar">
+      <label>Par:</label>
+      <select id="symbol">
+        <option value="BTCUSDT" selected>BTCUSDT</option>
+        <option value="ETHUSDT">ETHUSDT</option>
+        <option value="SOLUSDT">SOLUSDT</option>
+      </select>
 
-    font-family: Ubuntu, Verdana, sans-serif;
-    font-size: 11pt;
-    text-align: center;
-  }
+      <label>Intervalo:</label>
+      <select id="interval">
+        <option value="1">1s</option>
+        <option value="2">2s</option>
+        <option value="5">5s</option>
+        <option value="10">10s</option>
+        <option value="60">1m</option>
+      </select>
 
-  div.main_page {
-    position: relative;
-    display: table;
+      <label>Histórico:</label>
+      <select id="limit">
+        <option value="200">200 velas</option>
+        <option value="500" selected>500 velas</option>
+        <option value="1000">1000 velas</option>
+      </select>
 
-    width: 800px;
-
-    margin-bottom: 3px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0px 0px 0px 0px;
-
-    border-width: 2px;
-    border-color: #212738;
-    border-style: solid;
-
-    background-color: #FFFFFF;
-
-    text-align: center;
-  }
-
-  div.page_header {
-    height: 180px;
-    width: 100%;
-
-    background-color: #F5F6F7;
-  }
-
-  div.page_header span {
-    margin: 15px 0px 0px 50px;
-
-    font-size: 180%;
-    font-weight: bold;
-  }
-
-  div.page_header img {
-    margin: 3px 0px 0px 40px;
-
-    border: 0px 0px 0px;
-  }
-
-  div.banner {
-    padding: 9px 6px 9px 6px;
-    background-color: #E9510E;
-    color: #FFFFFF;
-    font-weight: bold;
-    font-size: 112%;
-    text-align: center;
-    position: absolute;
-    left: 40%;
-    bottom: 30px;
-    width: 20%;
-  }
-
-  div.table_of_contents {
-    clear: left;
-
-    min-width: 200px;
-
-    margin: 3px 3px 3px 3px;
-
-    background-color: #FFFFFF;
-
-    text-align: left;
-  }
-
-  div.table_of_contents_item {
-    clear: left;
-
-    width: 100%;
-
-    margin: 4px 0px 0px 0px;
-
-    background-color: #FFFFFF;
-
-    color: #000000;
-    text-align: left;
-  }
-
-  div.table_of_contents_item a {
-    margin: 6px 0px 0px 6px;
-  }
-
-  div.content_section {
-    margin: 3px 3px 3px 3px;
-
-    background-color: #FFFFFF;
-
-    text-align: left;
-  }
-
-  div.content_section_text {
-    padding: 4px 8px 4px 8px;
-
-    color: #000000;
-    font-size: 100%;
-  }
-
-  div.content_section_text pre {
-    margin: 8px 0px 8px 0px;
-    padding: 8px 8px 8px 8px;
-
-    border-width: 1px;
-    border-style: dotted;
-    border-color: #000000;
-
-    background-color: #F5F6F7;
-
-    font-style: italic;
-  }
-
-  div.content_section_text p {
-    margin-bottom: 6px;
-  }
-
-  div.content_section_text ul, div.content_section_text li {
-    padding: 4px 8px 4px 16px;
-  }
-
-  div.section_header {
-    padding: 3px 6px 3px 6px;
-
-    background-color: #8E9CB2;
-
-    color: #FFFFFF;
-    font-weight: bold;
-    font-size: 112%;
-    text-align: center;
-  }
-
-  div.section_header_grey {
-    background-color: #9F9386;
-  }
-
-  .floating_element {
-    position: relative;
-    float: left;
-  }
-
-  div.table_of_contents_item a,
-  div.content_section_text a {
-    text-decoration: none;
-    font-weight: bold;
-  }
-
-  div.table_of_contents_item a:link,
-  div.table_of_contents_item a:visited,
-  div.table_of_contents_item a:active {
-    color: #000000;
-  }
-
-  div.table_of_contents_item a:hover {
-    background-color: #000000;
-
-    color: #FFFFFF;
-  }
-
-  div.content_section_text a:link,
-  div.content_section_text a:visited,
-   div.content_section_text a:active {
-    background-color: #DCDFE6;
-
-    color: #000000;
-  }
-
-  div.content_section_text a:hover {
-    background-color: #000000;
-
-    color: #DCDFE6;
-  }
-
-  div.validator {
-  }
-    </style>
-  </head>
-  <body>
-    <div class="main_page">
-      <div class="page_header floating_element">
-        <img src="icons/ubuntu-logo.png" alt="Ubuntu Logo"
-             style="width:184px;height:146px;" class="floating_element" />
-        <div>
-          <span style="margin-top: 1.5em;" class="floating_element">
-            Apache2 Default Page
-          </span>
-        </div>
-        <div class="banner">
-          <div id="about"></div>
-          It works!
-        </div>
-
-      </div>
-      <div class="content_section floating_element">
-        <div class="content_section_text">
-          <p>
-                This is the default welcome page used to test the correct 
-                operation of the Apache2 server after installation on Ubuntu systems.
-                It is based on the equivalent page on Debian, from which the Ubuntu Apache
-                packaging is derived.
-                If you can read this page, it means that the Apache HTTP server installed at
-                this site is working properly. You should <b>replace this file</b> (located at
-                <tt>/var/www/html/index.html</tt>) before continuing to operate your HTTP server.
-          </p>
-
-          <p>
-                If you are a normal user of this web site and don't know what this page is
-                about, this probably means that the site is currently unavailable due to
-                maintenance.
-                If the problem persists, please contact the site's administrator.
-          </p>
-
-        </div>
-        <div class="section_header">
-          <div id="changes"></div>
-                Configuration Overview
-        </div>
-        <div class="content_section_text">
-          <p>
-                Ubuntu's Apache2 default configuration is different from the
-                upstream default configuration, and split into several files optimized for
-                interaction with Ubuntu tools. The configuration system is
-                <b>fully documented in
-                /usr/share/doc/apache2/README.Debian.gz</b>. Refer to this for the full
-                documentation. Documentation for the web server itself can be
-                found by accessing the <a href="/manual">manual</a> if the <tt>apache2-doc</tt>
-                package was installed on this server.
-          </p>
-          <p>
-                The configuration layout for an Apache2 web server installation on Ubuntu systems is as follows:
-          </p>
-          <pre>
-/etc/apache2/
-|-- apache2.conf
-|       `--  ports.conf
-|-- mods-enabled
-|       |-- *.load
-|       `-- *.conf
-|-- conf-enabled
-|       `-- *.conf
-|-- sites-enabled
-|       `-- *.conf
-          </pre>
-          <ul>
-                        <li>
-                           <tt>apache2.conf</tt> is the main configuration
-                           file. It puts the pieces together by including all remaining configuration
-                           files when starting up the web server.
-                        </li>
-
-                        <li>
-                           <tt>ports.conf</tt> is always included from the
-                           main configuration file. It is used to determine the listening ports for
-                           incoming connections, and this file can be customized anytime.
-                        </li>
-
-                        <li>
-                           Configuration files in the <tt>mods-enabled/</tt>,
-                           <tt>conf-enabled/</tt> and <tt>sites-enabled/</tt> directories contain
-                           particular configuration snippets which manage modules, global configuration
-                           fragments, or virtual host configurations, respectively.
-                        </li>
-
-                        <li>
-                           They are activated by symlinking available
-                           configuration files from their respective
-                           *-available/ counterparts. These should be managed
-                           by using our helpers
-                           <tt>
-                                a2enmod,
-                                a2dismod,
-                           </tt>
-                           <tt>
-                                a2ensite,
-                                a2dissite,
-                            </tt>
-                                and
-                           <tt>
-                                a2enconf,
-                                a2disconf
-                           </tt>. See their respective man pages for detailed information.
-                        </li>
-
-                        <li>
-                           The binary is called apache2 and is managed using systemd, so to
-                           start/stop the service use <tt>systemctl start apache2</tt> and
-                           <tt>systemctl stop apache2</tt>, and use <tt>systemctl status apache2</tt>
-                           and <tt>journalctl -u apache2</tt> to check status.  <tt>system</tt>
-                           and <tt>apache2ctl</tt> can also be used for service management if
-                           desired.
-                           <b>Calling <tt>/usr/bin/apache2</tt> directly will not work</b> with the
-                           default configuration.
-                        </li>
-          </ul>
-        </div>
-
-        <div class="section_header">
-            <div id="docroot"></div>
-                Document Roots
-        </div>
-
-        <div class="content_section_text">
-            <p>
-                By default, Ubuntu does not allow access through the web browser to
-                <em>any</em> file outside of those located in <tt>/var/www</tt>,
-                <a href="http://httpd.apache.org/docs/2.4/mod/mod_userdir.html" rel="nofollow">public_html</a>
-                directories (when enabled) and <tt>/usr/share</tt> (for web
-                applications). If your site is using a web document root
-                located elsewhere (such as in <tt>/srv</tt>) you may need to whitelist your
-                document root directory in <tt>/etc/apache2/apache2.conf</tt>.
-            </p>
-            <p>
-                The default Ubuntu document root is <tt>/var/www/html</tt>. You
-                can make your own virtual hosts under /var/www.
-            </p>
-        </div>
-
-        <div class="section_header">
-          <div id="bugs"></div>
-                Reporting Problems
-        </div>
-        <div class="content_section_text">
-          <p>
-                Please use the <tt>ubuntu-bug</tt> tool to report bugs in the
-                Apache2 package with Ubuntu. However, check <a
-                href="https://bugs.launchpad.net/ubuntu/+source/apache2"
-                rel="nofollow">existing bug reports</a> before reporting a new bug.
-          </p>
-          <p>
-                Please report bugs specific to modules (such as PHP and others)
-                to their respective packages, not to the web server itself.
-          </p>
-        </div>
-
-      </div>
+      <button id="reload">Recarregar</button>
     </div>
-    <div class="validator">
-    </div>
-  </body>
+  </header>
+
+  <main>
+    <div id="chartdiv"></div>
+  </main>
+
+  <script>
+    // ======= Config =======
+    const API_URL = 'data.php'; // mesmo domínio
+    let pollTimer = null;
+
+    // ======= UI =======
+    const elSymbol   = document.getElementById('symbol');
+    const elInterval = document.getElementById('interval');
+    const elLimit    = document.getElementById('limit');
+    const elReload   = document.getElementById('reload');
+
+    // ======= amCharts 5 =======
+    let root, chart, xAxis, yAxis, series;
+
+    function msPerInterval(intervalSec) {
+      return Number(intervalSec) * 1000;
+    }
+
+    function initChart(intervalSec) {
+      // Destroi instâncias anteriores (hot reload)
+      if (root) {
+        root.dispose();
+        root = null;
+      }
+
+      root = am5.Root.new("chartdiv");
+      root.setThemes([ am5themes_Animated.new(root) ]);
+
+      chart = root.container.children.push(am5xy.XYChart.new(root, {
+        panX: true, panY: false, wheelX: "panX", wheelY: "zoomX"
+      }));
+
+      // Eixo X por tempo (baseInterval sincronizado ao backend)
+      xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+        baseInterval: { timeUnit: "second", count: Number(intervalSec) },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        tooltip: am5.Tooltip.new(root, {})
+      }));
+
+      // Eixo Y (preço)
+      yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {}),
+        tooltip: am5.Tooltip.new(root, {})
+      }));
+
+      // Série de velas
+      series = chart.series.push(am5xy.CandlestickSeries.new(root, {
+        name: "Preço",
+        xAxis, yAxis,
+        openValueYField: "o",
+        highValueYField: "h",
+        lowValueYField: "l",
+        valueYField: "c",
+        valueXField: "t" // timestamp (ms)
+      }));
+
+      // Cursor
+      chart.set("cursor", am5xy.XYCursor.new(root, {
+        xAxis,
+        behavior: "zoomX"
+      }));
+    }
+
+    async function fetchJSON(url) {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
+
+    async function loadHistory(symbol, intervalSec, limit) {
+      const url = `${API_URL}?action=history&symbol=${encodeURIComponent(symbol)}&interval=${intervalSec}&limit=${limit}`;
+      return fetchJSON(url);
+    }
+
+    async function fetchNext(symbol, intervalSec) {
+      const url = `${API_URL}?action=next&symbol=${encodeURIComponent(symbol)}&interval=${intervalSec}`;
+      return fetchJSON(url);
+    }
+
+    function startPolling(symbol, intervalSec) {
+      stopPolling();
+      // Alinha o primeiro fetch ao "fechamento" da próxima vela
+      const delay = msPerInterval(intervalSec);
+      pollTimer = setTimeout(async function tick() {
+        try {
+          const candle = await fetchNext(symbol, intervalSec);
+          applyCandle(candle);
+        } catch (e) {
+          console.error("Polling error:", e);
+        } finally {
+          pollTimer = setTimeout(tick, delay); // agenda próximo
+        }
+      }, delay);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearTimeout(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function applyHistory(data) {
+      // data = [{t,o,h,l,c}, ...] timestamps em ms (ordenado)
+      series.data.setAll(data);
+      // dá um zoom para ver melhor o histórico recente
+      const last = data.at(-1)?.t ?? Date.now();
+      const span = Math.max(msPerInterval(elInterval.value) * 250, 60_000);
+      xAxis.zoomToDates(new Date(last - span), new Date(last));
+    }
+
+    function applyCandle(c) {
+      if (!c || typeof c.t !== "number") return;
+      const items = series.dataItems;
+      const last = items[items.length - 1];
+
+      if (last && last.get("valueX") === c.t) {
+        // Atualiza a vela corrente (durante formação)
+        last.setAll({
+          openValueY: c.o,
+          highValueY: c.h,
+          lowValueY:  c.l,
+          valueY:     c.c
+        });
+      } else {
+        // Nova vela “fechada”
+        series.data.push(c);
+        // Mantém um buffer enxuto (evita usar muita memória)
+        if (series.data.length > 5000) {
+          series.data.removeIndex(0);
+        }
+      }
+    }
+
+    async function boot() {
+      const symbol = elSymbol.value;
+      const intervalSec = Number(elInterval.value);
+      const limit = Number(elLimit.value);
+
+      initChart(intervalSec);
+
+      try {
+        const hist = await loadHistory(symbol, intervalSec, limit);
+        applyHistory(hist);
+      } catch (e) {
+        console.error("Falha ao carregar histórico:", e);
+      }
+
+      startPolling(symbol, intervalSec);
+    }
+
+    // UI handlers
+    elReload.addEventListener('click', boot);
+    elSymbol.addEventListener('change', boot);
+    elInterval.addEventListener('change', boot);
+    elLimit.addEventListener('change', boot);
+
+    // Inicializa
+    am5.ready(boot);
+  </script>
+</body>
 </html>
